@@ -5,9 +5,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "build": "webpack --config webpack.config.js",
-    "go": "npm run build && npm start"
+    "start": "node server.js"
   },
   "author": "Gabriel Giarratana",
   "license": "ISC",
