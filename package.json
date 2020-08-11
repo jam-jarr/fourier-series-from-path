@@ -2,15 +2,17 @@
   "name": "svg-to-fourier-circles",
   "version": "1.0.0",
   "description": "some description",
-  "main": "server.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "webpack --config webpack.config.js",
+    "go": "npm run build && npm start"
   },
   "author": "Gabriel Giarratana",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
-    "pts": "^0.9.4"
-  }
+    "express": "^4.17.1"
+  },
+  "devDependencies": {}
 }

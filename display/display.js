@@ -13,3 +13,6 @@ while (length < path.getTotalLength()) {
   length += LENGTH_INCREMENT;
 }
 console.log(points.length);
+
+let p = new Pts.Pt(1, 2, 3);
+console.log(p);
