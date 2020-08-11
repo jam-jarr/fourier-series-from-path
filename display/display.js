@@ -17,7 +17,6 @@ while (n < totalLoops) {
 
 function integrate(n, deltaT) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
-  console.log(deltaT);
   const totalLength = path.getTotalLength();
   let getPointAtNormalizedLength = (len) =>
     path.getPointAtLength(len * totalLength);
