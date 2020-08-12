@@ -1,9 +1,21 @@
 const __dirname = window.location.href;
 
-const decodedPath = decodeURI(__dirname.split("=")[1]);
+var search = location.search.substring(1);
+let paramters = JSON.parse(
+  '{"' +
+    decodeURI(search)
+      .replace(/"/g, '\\"')
+      .replace(/&/g, '","')
+      .replace(/=/g, '":"') +
+    '"}'
+);
+const { path } = paramters;
 
-var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-path.setAttribute("d", decodedPath);
+var pathElement = document.createElementNS(
+  "http://www.w3.org/2000/svg",
+  "path"
+);
+pathElement.setAttribute("d", path);
 
 const PRECISION = 0.005;
 const N = 20;
@@ -19,9 +31,10 @@ for (let n = -N; n <= N; n++) {
 
 function integrate(n) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
-  const totalLength = path.getTotalLength();
+  // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
+  const totalLength = pathElement.getTotalLength();
   let getPointAtNormalizedLength = (len) =>
-    path.getPointAtLength(len * totalLength);
+    pathElement.getPointAtLength(len * totalLength);
   let sum = math.complex(0, 0);
   let normalizedLength = 0;
   while (normalizedLength <= 1) {
