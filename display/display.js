@@ -18,7 +18,7 @@ var pathElement = document.createElementNS(
 pathElement.setAttribute("d", path);
 
 const PRECISION = 0.005;
-const N = 20;
+const N = 40;
 const SCALE = 20;
 const MAX_LENGTH = 1000;
 
@@ -87,13 +87,16 @@ Pts.quickStart("#board", "#123");
   space.add((time, ftime) => {
     let lines = [];
     const t = (time % 10000) / 10000;
-    let vectors = constantComponent.map((value, i) => evalAtTime(value, i, t));
+    let vectors = constantComponent
+      .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
+      .map((vector) => math.multiply(vector, SCALE)); // scale everything by some amount
     let sortedArray = getSortedArray(vectors);
+    // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
+    sortedArray = sortedArray.slice(1);
+
     let currentPoint = new Pt(space.center);
     sortedArray.forEach((value, i) => {
-      let nextPoint = currentPoint.$add(
-        complexNumberToVector(math.multiply(value, SCALE))
-      );
+      let nextPoint = currentPoint.$add(complexNumberToVector(value));
       let ln = new Group(currentPoint, nextPoint);
       currentPoint = nextPoint;
       lines.push(ln);
@@ -102,22 +105,19 @@ Pts.quickStart("#board", "#123");
     // add to trailing line
     trailingLine.push(currentPoint);
 
-    // draw rotating vectors
+    // rotating vectors
     for (let i = 0; i < lines.length; i++) {
       const ln = lines[i];
       form.stroke("#fff").line(ln);
       form.fillOnly("rgba(255,255,255,0.8").points(ln, 0.5);
     }
 
+    // trailing line
     if (trailingLine.length > MAX_LENGTH) {
       trailingLine.shift();
     }
-    // draw trailing line
-    for (let i = 0; i < trailingLine.length - 1; i++) {
-      const ln_start = trailingLine[i];
-      const ln_end = trailingLine[i + 1];
-      form.stroke("#fff", 2.5).line(new Group(ln_start, ln_end));
-    }
+
+    form.strokeOnly("#fff", 2.5).line(trailingLine);
   });
 
   space.play();
