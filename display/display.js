@@ -17,6 +17,9 @@ var pathElement = document.createElementNS(
 );
 pathElement.setAttribute("d", path);
 
+// TODO: N should be representative of the number of vectors
+// TODO: auto scaling based on the max(mag : vectors)
+// TODO: draw circle representing the length of each vector
 const PRECISION = 0.005;
 const N = 40;
 const SCALE = 20;
@@ -108,6 +111,12 @@ Pts.quickStart("#board", "#123");
     // rotating vectors
     for (let i = 0; i < lines.length; i++) {
       const ln = lines[i];
+      const dist = Math.sqrt(
+        Math.pow(ln[0][0] - ln[1][0], 2) + Math.pow(ln[0][1] - ln[1][1], 2)
+      );
+      // form.stroke("#fff").circle(ln[0], dist);
+      const circle = Pts.Circle.fromCenter(ln[0], dist);
+      form.strokeOnly("rgba(255, 255, 255, 0.2").circle(circle);
       form.stroke("#fff").line(ln);
       form.fillOnly("rgba(255,255,255,0.8").points(ln, 0.5);
     }
