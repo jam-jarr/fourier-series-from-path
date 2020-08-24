@@ -1,5 +1,4 @@
-const __dirname = window.location.href;
-
+// decoding path from parameters
 var search = location.search.substring(1);
 let paramters = JSON.parse(
   '{"' +
@@ -17,19 +16,74 @@ var pathElement = document.createElementNS(
 );
 pathElement.setAttribute("d", path);
 
-// TODO: N should be representative of the number of vectors
-// TODO: auto scaling based on the max(mag : vectors)
-// TODO: draw circle representing the length of each vector
-const PRECISION = 0.005;
-const N = 40;
-const SCALE = 20;
-const MAX_LENGTH = 1000;
-
-let n = -N;
+// globals
 let constantComponent = [];
-// calculate constants in range: [-N, N]
-for (let n = -N; n <= N; n++) {
-  constantComponent.push(integrate(n));
+
+// defaults
+let precision = 0.005;
+let N = 20;
+let scale = 5;
+let maxTrailLength = 500;
+
+// get html elements for sliders and button
+const resetButton = document.getElementById("resetButton");
+
+const nSlider = document.getElementById("nSlider");
+const nValue = document.getElementById("nValue");
+
+const precisionSlider = document.getElementById("precisionSlider");
+const precisionValue = document.getElementById("precisionValue");
+
+const scaleSlider = document.getElementById("scaleSlider");
+const scaleValue = document.getElementById("scaleValue");
+
+const maxTrailLengthSlider = document.getElementById("maxLengthSlider");
+const maxTrailLengthValue = document.getElementById("maxLengthValue");
+
+// bind listeners
+resetButton.onclick = () => {
+  N = parseInt(nSlider.value);
+  precision = parseInt(precisionSlider.value);
+  maxTrailLength = parseInt(maxTrailLengthSlider.value);
+  scale = parseInt(scaleSlider.value);
+  console.log(N, precision, maxTrailLength, scale);
+  // generateConstants();
+};
+
+addSliderFunctionality(nSlider, nValue);
+addSliderFunctionality(precisionSlider, precisionValue);
+addSliderFunctionality(scaleSlider, scaleValue);
+addSliderFunctionality(maxTrailLengthSlider, maxTrailLengthValue);
+
+function addSliderFunctionality(slider, output) {
+  slider.oninput = () => {
+    output.innerHTML = output
+      .getAttribute("defaultString")
+      .replace("{value}", slider.value);
+  };
+}
+
+// sync sliders and default values
+syncSlidersAndValues(nSlider, nValue, N);
+syncSlidersAndValues(precisionSlider, precisionValue, precision);
+syncSlidersAndValues(scaleSlider, scaleValue, scale);
+syncSlidersAndValues(maxTrailLengthSlider, maxTrailLengthValue, maxTrailLength);
+
+function syncSlidersAndValues(slider, output, value) {
+  slider.value = value;
+  output.innerHTML = output
+    .getAttribute("defaultString")
+    .replace("{value}", slider.value);
+}
+
+// calculating the numbers for the visualization
+// NOTE: this can be a very demanding process, consider moving to server-side processing
+function generateConstants() {
+  // calculate constants in range: [-N, N]
+  constantComponent = [];
+  for (let n = -N; n <= N; n++) {
+    constantComponent.push(integrate(n));
+  }
 }
 
 function integrate(n) {
@@ -44,10 +98,10 @@ function integrate(n) {
     const val = math.evaluate(
       `(${pointToComplexNumber(
         getPointAtNormalizedLength(normalizedLength)
-      )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${PRECISION}`
+      )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${precision}`
     );
     sum = math.add(sum, val);
-    normalizedLength += PRECISION;
+    normalizedLength += precision;
   }
   return sum;
 }
@@ -56,7 +110,12 @@ function pointToComplexNumber(point) {
   return math.complex(point.x, point.y);
 }
 
-// render visualization
+function complexNumberToVector(complex) {
+  return {
+    x: complex.re,
+    y: complex.im,
+  };
+}
 
 function getSortedArray(array) {
   // reorder array so that elements are in opposite pairs [0, 1, -1, 2, -2, 3, -3, ...]
@@ -76,13 +135,10 @@ function evalAtTime(value, i, t) {
   return math.evaluate(`(${value}) * e^(${i - N} * 2 * pi * i * ${t})`);
 }
 
-function complexNumberToVector(complex) {
-  return {
-    x: complex.re,
-    y: complex.im,
-  };
-}
+// generate constants for fourier series
+generateConstants();
 
+// render visualization
 Pts.quickStart("#board", "#123");
 
 (function () {
@@ -92,7 +148,7 @@ Pts.quickStart("#board", "#123");
     const t = (time % 10000) / 10000;
     let vectors = constantComponent
       .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
-      .map((vector) => math.multiply(vector, SCALE)); // scale everything by some amount
+      .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
     let sortedArray = getSortedArray(vectors);
     // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
     sortedArray = sortedArray.slice(1);
@@ -122,8 +178,8 @@ Pts.quickStart("#board", "#123");
     }
 
     // trailing line
-    if (trailingLine.length > MAX_LENGTH) {
-      trailingLine.shift();
+    if (trailingLine.length > maxTrailLength) {
+      trailingLine = trailingLine.slice(trailingLine.length - maxTrailLength);
     }
 
     form.strokeOnly("#fff", 2.5).line(trailingLine);

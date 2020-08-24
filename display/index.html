@@ -13,7 +13,44 @@
     ></script>
     <script type="module" src="display.js" defer></script>
     <body>
-      <div id="board"></div>
+      <div id="board">
+        <div class="slidecontainer">
+          <output id="nValue" defaultString="N: {value}"></output>
+          <input type="range" min="1" max="100" class="slider" id="nSlider" />
+          <output
+            id="precisionValue"
+            defaultString="Precision: {value}"
+          ></output>
+          <input
+            type="range"
+            min="0"
+            max="0.1"
+            step="0.001"
+            class="slider"
+            id="precisionSlider"
+          />
+          <button type="button" id="resetButton">Recalculate</button>
+          <output id="scaleValue" defaultString="Scale: {value}"></output>
+          <input
+            type="range"
+            min="1"
+            max="100"
+            class="slider"
+            id="scaleSlider"
+          />
+          <output
+            id="maxLengthValue"
+            defaultString="Max Trail Length: {value}"
+          ></output>
+          <input
+            type="range"
+            min="1"
+            max="1000"
+            class="slider"
+            id="maxLengthSlider"
+          />
+        </div>
+      </div>
     </body>
   </head>
 </html>
