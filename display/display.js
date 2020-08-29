@@ -49,17 +49,22 @@ resetButton.onclick = () => {
   generateConstants();
 };
 
-addSliderFunctionality(nSlider, nValue);
-addSliderFunctionality(precisionSlider, precisionValue);
-addSliderFunctionality(scaleSlider, scaleValue);
-addSliderFunctionality(maxTrailLengthSlider, maxTrailLengthValue);
+nSlider.oninput = () => setOutput(nValue, nSlider.value);
+precisionSlider.oninput = () =>
+  setOutput(precisionValue, precisionSlider.value);
+scaleSlider.oninput = () => {
+  setOutput(scaleValue, scaleSlider.value);
+  scale = parseInt(scaleSlider.value);
+};
+maxTrailLengthSlider.oninput = () => {
+  setOutput(maxTrailLengthValue, maxTrailLengthSlider.value);
+  maxTrailLength = parseInt(maxTrailLengthSlider.value);
+};
 
-function addSliderFunctionality(slider, output) {
-  slider.oninput = () => {
-    output.innerHTML = output
-      .getAttribute("defaultString")
-      .replace("{value}", slider.value);
-  };
+function setOutput(output, value) {
+  output.innerHTML = output
+    .getAttribute("defaultString")
+    .replace("{value}", value);
 }
 
 // sync sliders and default values
@@ -68,11 +73,9 @@ syncSlidersAndValues(precisionSlider, precisionValue, precision);
 syncSlidersAndValues(scaleSlider, scaleValue, scale);
 syncSlidersAndValues(maxTrailLengthSlider, maxTrailLengthValue, maxTrailLength);
 
-function syncSlidersAndValues(slider, output, value) {
-  slider.value = value;
-  output.innerHTML = output
-    .getAttribute("defaultString")
-    .replace("{value}", slider.value);
+function syncSlidersAndValues(slider, output, defaultValue) {
+  slider.value = defaultValue;
+  setOutput(output, slider.value);
 }
 
 // calculating the numbers for the visualization
