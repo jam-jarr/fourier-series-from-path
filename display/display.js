@@ -44,8 +44,6 @@ const maxTrailLengthValue = document.getElementById("maxLengthValue");
 resetButton.onclick = () => {
   N = parseInt(nSlider.value);
   precision = parseFloat(precisionSlider.value);
-  maxTrailLength = parseInt(maxTrailLengthSlider.value);
-  scale = parseInt(scaleSlider.value);
   generateConstants();
 };
 
