@@ -18,6 +18,7 @@ pathElement.setAttribute("d", path);
 
 // globals
 let constantComponent = [];
+let doClearTrailingLine = false;
 
 // defaults
 let precision = 0.005;
@@ -44,6 +45,7 @@ const maxTrailLengthValue = document.getElementById("maxLengthValue");
 resetButton.onclick = () => {
   N = parseInt(nSlider.value);
   precision = parseFloat(precisionSlider.value);
+  doClearTrailingLine = true;
   generateConstants();
 };
 
@@ -144,6 +146,10 @@ Pts.quickStart("#board", "#123");
 (function () {
   let trailingLine = new Group();
   space.add((time, ftime) => {
+    if (doClearTrailingLine) {
+      trailingLine = new Group();
+      doClearTrailingLine = false;
+    }
     let lines = [];
     const t = (time % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
     let vectors = constantComponent
