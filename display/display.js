@@ -145,7 +145,7 @@ Pts.quickStart("#board", "#123");
   let trailingLine = new Group();
   space.add((time, ftime) => {
     let lines = [];
-    const t = (time % 10000) / 10000;
+    const t = (time % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
     let vectors = constantComponent
       .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
       .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
@@ -162,7 +162,7 @@ Pts.quickStart("#board", "#123");
     });
 
     // add to trailing line
-    trailingLine.push(currentPoint);
+    trailingLine.push(currentPoint.$subtract(space.center).$divide(scale));
 
     // rotating vectors
     for (let i = 0; i < lines.length; i++) {
@@ -182,7 +182,9 @@ Pts.quickStart("#board", "#123");
       trailingLine = trailingLine.slice(trailingLine.length - maxTrailLength);
     }
 
-    form.strokeOnly("#fff", 2.5).line(trailingLine);
+    form
+      .strokeOnly("#fff", 2.5)
+      .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center)));
   });
 
   space.play();
