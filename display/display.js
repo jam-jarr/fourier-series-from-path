@@ -167,7 +167,7 @@ Pts.quickStart("#board", "#123");
       lines.push(ln);
     });
 
-    // add to trailing line
+    // add to trailing line; 'normalize' each point with respect to the scale and the center of the screen
     trailingLine.push(currentPoint.$subtract(space.center).$divide(scale));
 
     // rotating vectors
@@ -190,7 +190,7 @@ Pts.quickStart("#board", "#123");
 
     form
       .strokeOnly("#fff", 2.5)
-      .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center)));
+      .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center))); // reverse the 'normalization' from earlier
   });
 
   space.play();
