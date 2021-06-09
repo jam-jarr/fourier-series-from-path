@@ -1,20 +1,32 @@
 // decoding path from parameters
-var search = location.search.substring(1);
-let paramters = JSON.parse(
-  '{"' +
-    decodeURI(search)
-      .replace(/"/g, '\\"')
-      .replace(/&/g, '","')
-      .replace(/=/g, '":"') +
-    '"}'
-);
-const { path } = paramters;
+// var search = location.search.substring(1);
+// let paramters = JSON.parse(
+//   '{"' +
+//     decodeURI(search)
+//       .replace(/"/g, '\\"')
+//       .replace(/&/g, '","')
+//       .replace(/=/g, '":"') +
+//     '"}'
+// );
+const path = sessionStorage.getItem('svg-data')
 
 var pathElement = document.createElementNS(
   "http://www.w3.org/2000/svg",
-  "path"
+  'svg'
 );
-pathElement.setAttribute("d", path);
+pathElement.innerHTML = path
+pathElement = pathElement.firstElementChild
+
+console.log(pathElement)
+console.log(pathElement.constructor.name)
+
+console.log(pathElement.firstElementChild.constructor.name);
+console.log(pathElement.firstElementChild.firstElementChild.constructor.name);
+
+console.log('------')
+for (let i = 0; i < pathElement.children.length; i++) {
+  console.log(pathElement.children[i])
+}
 
 // globals
 let constantComponent = [];
@@ -91,19 +103,27 @@ function generateConstants() {
 function integrate(n) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
   // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
-  const totalLength = pathElement.getTotalLength();
-  let getPointAtNormalizedLength = (len) =>
-    pathElement.getPointAtLength(len * totalLength);
+
+  // this is a bit of a hack, I'm gonna be honest, but I'm trying; Maybe I should move this processing to server-side? Maybe I should research other ways to do this?
+  const actualPathElements = pathElement.getElementsByTagName('path');
   let sum = math.complex(0, 0);
-  let normalizedLength = 0;
-  while (normalizedLength <= 1) {
-    const val = math.evaluate(
-      `(${pointToComplexNumber(
-        getPointAtNormalizedLength(normalizedLength)
-      )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${precision}`
-    );
-    sum = math.add(sum, val);
-    normalizedLength += precision;
+  for (let i = 0; i < actualPathElements.length; i++) {
+    const actualPathElement = actualPathElements[i];
+
+    // end hack
+    const totalLength = actualPathElement.getTotalLength();
+    let getPointAtNormalizedLength = (len) =>
+      actualPathElement.getPointAtLength(len * totalLength);
+    let normalizedLength = 0;
+    while (normalizedLength <= 1) {
+      const val = math.evaluate(
+        `(${pointToComplexNumber(
+          getPointAtNormalizedLength(normalizedLength)
+        )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${precision}`
+      );
+      sum = math.add(sum, val);
+      normalizedLength += precision;
+    }
   }
   return sum;
 }
@@ -146,6 +166,7 @@ Pts.quickStart("#board", "#123");
 (function () {
   let trailingLine = new Group();
   space.add((time, ftime) => {
+    console.log('frame')
     if (doClearTrailingLine) {
       trailingLine = new Group();
       doClearTrailingLine = false;
