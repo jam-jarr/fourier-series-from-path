@@ -165,14 +165,20 @@ Pts.quickStart("#board", "#123");
 
 (function () {
   let trailingLine = new Group();
+  let fakeTime = 0;
+  let correctForPause = false;
   space.add((time, ftime) => {
-    console.log('frame')
+    fakeTime+=ftime;
+    if (correctForPause) {
+      fakeTime-=ftime
+      correctForPause = false
+    }
     if (doClearTrailingLine) {
       trailingLine = new Group();
       doClearTrailingLine = false;
     }
     let lines = [];
-    const t = (time % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
+    const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
     let vectors = constantComponent
       .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
       .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
@@ -212,7 +218,16 @@ Pts.quickStart("#board", "#123");
     form
       .strokeOnly("#fff", 2.5)
       .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center))); // reverse the 'normalization' from earlier
+    window.onfocus = () => {
+      space.resume()
+      correctForPause = true
+    }
+    window.onblur = () => {
+      space.pause(false)
+    }
   });
 
   space.play();
 })();
+
+// console.log(document.visibilityState + " 1")
