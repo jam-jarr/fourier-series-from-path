@@ -9,3 +9,4 @@ Generate a fourier series visualization from an SVG path
 - [ ] Move heavy processing to server-side (see if it is faster in another language)
 - [ ] Draw-your-own path to visualize
 - [ ] Let user pan, zoom with scroll
+- [ ] Automatically set scale so that the drawing isn't too big or small
