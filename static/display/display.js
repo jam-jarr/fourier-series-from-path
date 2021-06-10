@@ -128,6 +128,24 @@ function integrate(n) {
   return sum;
 }
 
+function generalizedIntegrate(points, n) {
+  let sum = math.complex(0, 0)
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i]
+    const percentOfPoints = (points.length+1)/i
+    const percentOfOnePoint = (1/(points.length+1))
+    const val = math.evaluate(
+      `(${pointToComplexNumber(
+        point
+      )}) * e^(-${n} * 2 * pi * i * ${percentOfPoints}) * ${percentOfOnePoint}`
+    );
+    sum = math.add(sum, val);
+    normalizedLength += precision;
+  }
+  return sum;
+}
+
+
 function pointToComplexNumber(point) {
   return math.complex(point.x, point.y);
 }
@@ -168,9 +186,9 @@ Pts.quickStart("#board", "#123");
   let fakeTime = 0;
   let correctForPause = false;
   space.add((time, ftime) => {
-    fakeTime+=ftime;
+    fakeTime += ftime;
     if (correctForPause) {
-      fakeTime-=ftime
+      fakeTime -= ftime
       correctForPause = false
     }
     if (doClearTrailingLine) {
