@@ -1,24 +1,37 @@
 <html>
+
   <head>
     <link rel="stylesheet" type="text/css" href="./upload.css" />
     <script src="./upload.js" defer></script>
   </head>
+
   <body>
     <div id="drop-area">
+      <h2>Drop an SVG file to fourier it!</h2>
       <form class="my-form">
-        <p>
-          Upload multiple files with the file dialog or by dragging and dropping
-          images onto the dashed region
-        </p>
-        <input
-          type="file"
-          id="fileElem"
-          accept="image/*"
-          onchange="handleFiles(this.files)"
-        />
+        <input type="file" id="fileElem" accept="image/*" onchange="handleFiles(this.files)" />
         <label class="button" for="fileElem">Select some files</label>
       </form>
       <div id="gallery"></div>
+    </div>
+    <div id="drawown">
+      <label class="button">Draw your own path!</label>
+    </div>
+    <div id="examples">
+      <h2>Examples</h2>
+      <hr>
+      <section class="cards">
+        <aritcle class="card" value="dog">
+          <div class="card-content">
+            <img src="assets/dog.png">
+          </div>
+        </aritcle>
+        <aritcle class="card" value="initials">
+          <div class="card-content">
+            <img src="assets/initials.png">
+          </div>
+        </aritcle>
+      </section>
     </div>
   </body>
 </html>

@@ -15,7 +15,6 @@ var pathElement = document.createElementNS(
   'svg'
 );
 pathElement.innerHTML = path
-pathElement = pathElement.firstElementChild
 
 console.log(pathElement)
 console.log(pathElement.constructor.name)
@@ -41,6 +40,8 @@ let maxTrailLength = 500;
 // get html elements for sliders and button
 const resetButton = document.getElementById("resetButton");
 
+const saveButton = document.getElementById("save");
+
 const nSlider = document.getElementById("nSlider");
 const nValue = document.getElementById("nValue");
 
@@ -60,6 +61,11 @@ resetButton.onclick = () => {
   doClearTrailingLine = true;
   generateConstants();
 };
+
+saveButton.onclick = () => {
+  const canvas = document.getElementById("board_canvas")
+  console.log(canvas.toDataURL())
+}
 
 nSlider.oninput = () => setOutput(nValue, nSlider.value);
 precisionSlider.oninput = () =>
@@ -132,8 +138,8 @@ function generalizedIntegrate(points, n) {
   let sum = math.complex(0, 0)
   for (let i = 0; i < points.length; i++) {
     const point = points[i]
-    const percentOfPoints = (points.length+1)/i
-    const percentOfOnePoint = (1/(points.length+1))
+    const percentOfPoints = (points.length + 1) / i
+    const percentOfOnePoint = (1 / (points.length + 1))
     const val = math.evaluate(
       `(${pointToComplexNumber(
         point
@@ -179,28 +185,42 @@ function evalAtTime(value, i, t) {
 generateConstants();
 
 // render visualization
-Pts.quickStart("#board", "#123");
+// setup
+Pts.namespace(window);
+let space = new CanvasSpace("#board").setup({ bgcolor: "transparent" })
+let form = space.getForm();
 
-(function () {
-  let trailingLine = new Group();
-  let fakeTime = 0;
-  let correctForPause = false;
-  space.add((time, ftime) => {
+let trailingLine;
+let fakeTime;
+let correctForPause;
+
+space.add({
+  start: (bound, space) => {
+    trailingLine = new Group();
+    fakeTime = 0;
+    correctForPause = false
+
+  },
+  animate: (time, ftime, space) => {
     fakeTime += ftime;
-    if (correctForPause) {
-      fakeTime -= ftime
-      correctForPause = false
-    }
+
+    // Corrections
     if (doClearTrailingLine) {
       trailingLine = new Group();
       doClearTrailingLine = false;
     }
+    if (correctForPause) {
+      fakeTime -= ftime
+      correctForPause = false
+    }
+
     let lines = [];
     const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
     let vectors = constantComponent
       .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
       .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
     let sortedArray = getSortedArray(vectors);
+
     // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
     sortedArray = sortedArray.slice(1);
 
@@ -221,8 +241,7 @@ Pts.quickStart("#board", "#123");
       const dist = Math.sqrt(
         Math.pow(ln[0][0] - ln[1][0], 2) + Math.pow(ln[0][1] - ln[1][1], 2)
       );
-      // form.stroke("#fff").circle(ln[0], dist);
-      const circle = Pts.Circle.fromCenter(ln[0], dist);
+      const circle = Circle.fromCenter(ln[0], dist);
       form.strokeOnly("rgba(255, 255, 255, 0.2").circle(circle);
       form.stroke("#fff").line(ln);
       form.fillOnly("rgba(255,255,255,0.8").points(ln, 0.5);
@@ -232,7 +251,6 @@ Pts.quickStart("#board", "#123");
     if (trailingLine.length > maxTrailLength) {
       trailingLine = trailingLine.slice(trailingLine.length - maxTrailLength);
     }
-
     form
       .strokeOnly("#fff", 2.5)
       .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center))); // reverse the 'normalization' from earlier
@@ -243,9 +261,14 @@ Pts.quickStart("#board", "#123");
     window.onblur = () => {
       space.pause(false)
     }
-  });
-
-  space.play();
-})();
-
-// console.log(document.visibilityState + " 1")
+  },
+  action: (x, y, type) => {
+    if (type === 'down') {
+      space.clear('transparent')
+    } else if (type === 'up') {
+      const canvas = document.getElementById("board_canvas")
+      console.log(canvas.toDataURL())
+    }
+  }
+});
+space.bindMouse().play();
