@@ -28,7 +28,7 @@ for (let i = 0; i < pathElement.children.length; i++) {
 }
 
 // globals
-let constantComponent = [];
+let constantComponents = [];
 let doClearTrailingLine = false;
 
 // defaults
@@ -99,37 +99,40 @@ function syncSlidersAndValues(slider, output, defaultValue) {
 // calculating the numbers for the visualization
 // NOTE: this can be a very demanding process, consider moving to server-side processing
 function generateConstants() {
-  // calculate constants in range: [-N, N]
-  constantComponent = [];
-  for (let n = -N; n <= N; n++) {
-    constantComponent.push(integrate(n));
-  }
+  // calculate constants in range: [-N, N] for each path
+  // TODO: refactor to map
+  constantComponents = [];
+  paths.forEach((path) => {
+    constantComponent = []
+    for (let n = -N; n <= N; n++) {
+      constantComponent.push(integrate(path, n));
+    }
+    constantComponents.push(constantComponent)
+  })
 }
 
-function integrate(n) {
+function integrate(path, n) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
   // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
 
   // this is a bit of a hack, I'm gonna be honest, but I'm trying; Maybe I should move this processing to server-side? Maybe I should research other ways to do this?
-  const actualPathElements = pathElement.getElementsByTagName('path');
-  let sum = math.complex(0, 0);
-  for (let i = 0; i < actualPathElements.length; i++) {
-    const actualPathElement = actualPathElements[i];
+  // const actualPathElements = pathElement.firstChild.children;
+  // console.log('test');
+  // console.log(actualPathElements)
 
-    // end hack
-    const totalLength = actualPathElement.getTotalLength();
-    let getPointAtNormalizedLength = (len) =>
-      actualPathElement.getPointAtLength(len * totalLength);
-    let normalizedLength = 0;
-    while (normalizedLength <= 1) {
-      const val = math.evaluate(
-        `(${pointToComplexNumber(
-          getPointAtNormalizedLength(normalizedLength)
-        )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${precision}`
-      );
-      sum = math.add(sum, val);
-      normalizedLength += precision;
-    }
+  let sum = math.complex(0, 0);
+  const totalLength = path.getTotalLength();
+  let getPointAtNormalizedLength = (len) =>
+    path.getPointAtLength(len * totalLength);
+  let normalizedLength = 0;
+  while (normalizedLength <= 1) {
+    const val = math.evaluate(
+      `(${pointToComplexNumber(
+        getPointAtNormalizedLength(normalizedLength)
+      )}) * e^(-${n} * 2 * pi * i * ${normalizedLength}) * ${precision}`
+    );
+    sum = math.add(sum, val);
+    normalizedLength += precision;
   }
   return sum;
 }
@@ -216,7 +219,7 @@ space.add({
 
     let lines = [];
     const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
-    let vectors = constantComponent
+    let vectors = constantComponents
       .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
       .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
     let sortedArray = getSortedArray(vectors);
