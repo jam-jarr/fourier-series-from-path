@@ -15,13 +15,7 @@ var pathElement = document.createElementNS(
   'svg'
 );
 pathElement.innerHTML = path
-
 console.log(pathElement)
-console.log(pathElement.constructor.name)
-
-console.log(pathElement.firstElementChild.constructor.name);
-console.log(pathElement.firstElementChild.firstElementChild.constructor.name);
-
 console.log('------')
 for (let i = 0; i < pathElement.children.length; i++) {
   console.log(pathElement.children[i])
@@ -101,9 +95,19 @@ function syncSlidersAndValues(slider, output, defaultValue) {
 function generateConstants() {
   // calculate constants in range: [-N, N] for each path
   // TODO: refactor to map
+  //get 
+  const svg = pathElement.getElementsByTagName('svg')[0];
+  console.log('----------');
+  console.log(svg);
+  console.log('----------');
+  const paths = [...svg.querySelectorAll('circle, ellipse, line, polyline, polygon, path, rect')]
+  // const paths = [...pathElement.firstChild.children]
+  console.log('bbbbbb')
+  console.log(paths)
   constantComponents = [];
   paths.forEach((path) => {
-    constantComponent = []
+    console.log(path);
+    let constantComponent = []
     for (let n = -N; n <= N; n++) {
       constantComponent.push(integrate(path, n));
     }
@@ -193,13 +197,22 @@ Pts.namespace(window);
 let space = new CanvasSpace("#board").setup({ bgcolor: "transparent" })
 let form = space.getForm();
 
-let trailingLine;
+let trailingLines;
 let fakeTime;
 let correctForPause;
 
 space.add({
   start: (bound, space) => {
-    trailingLine = new Group();
+    trailingLines = new Array(constantComponents.length);
+    trailingLines.fill(new Group())
+    const arrayOfObject = (size, object) => {
+      const a = new Array(size);
+      for (let i = 0; i < size; i++) {
+        a[i] = Object.create(object);
+      }
+      return a;
+    }
+    trailingLines = arrayOfObject(constantComponents.length, new Group())
     fakeTime = 0;
     correctForPause = false
 
@@ -209,7 +222,7 @@ space.add({
 
     // Corrections
     if (doClearTrailingLine) {
-      trailingLine = new Group();
+      trailingLines.fill(new Group())
       doClearTrailingLine = false;
     }
     if (correctForPause) {
@@ -217,46 +230,50 @@ space.add({
       correctForPause = false
     }
 
-    let lines = [];
-    const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
-    let vectors = constantComponents
-      .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
-      .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
-    let sortedArray = getSortedArray(vectors);
+    for (let index = 0; index < constantComponents.length; index++) {
+      
+      const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
+      let lines = [];
+      let vectors = constantComponents[index]
+        .map((value, i) => evalAtTime(value, i, t)) // rotate vectors according to time
+        .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
+      let sortedArray = getSortedArray(vectors);
 
-    // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
-    sortedArray = sortedArray.slice(1);
+      // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
+      sortedArray = sortedArray.slice(1);
 
-    let currentPoint = new Pt(space.center);
-    sortedArray.forEach((value, i) => {
-      let nextPoint = currentPoint.$add(complexNumberToVector(value));
-      let ln = new Group(currentPoint, nextPoint);
-      currentPoint = nextPoint;
-      lines.push(ln);
-    });
+      let currentPoint = new Pt(space.center);
+      sortedArray.forEach((value, i) => {
+        let nextPoint = currentPoint.$add(complexNumberToVector(value));
+        let ln = new Group(currentPoint, nextPoint);
+        currentPoint = nextPoint;
+        lines.push(ln);
+      });
 
-    // add to trailing line; 'normalize' each point with respect to the scale and the center of the screen
-    trailingLine.push(currentPoint.$subtract(space.center).$divide(scale));
+      // add to trailing line; 'normalize' each point with respect to the scale and the center of the screen
+      trailingLines[index].push(currentPoint.$subtract(space.center).$divide(scale));
+      // rotating vectors
+      // skip first vector
+      for (let i = 1; i < lines.length; i++) {
+        const ln = lines[i];
+        const dist = Math.sqrt(
+          Math.pow(ln[0][0] - ln[1][0], 2) + Math.pow(ln[0][1] - ln[1][1], 2)
+        );
+        const circle = Circle.fromCenter(ln[0], dist);
+        form.strokeOnly("rgba(255, 255, 255, 0.2").circle(circle);
+        form.strokeOnly("#fff", 1).line(ln);
+        form.fillOnly("rgba(255,255,255,0.8").points(ln, 0.5);
+      }
 
-    // rotating vectors
-    for (let i = 0; i < lines.length; i++) {
-      const ln = lines[i];
-      const dist = Math.sqrt(
-        Math.pow(ln[0][0] - ln[1][0], 2) + Math.pow(ln[0][1] - ln[1][1], 2)
-      );
-      const circle = Circle.fromCenter(ln[0], dist);
-      form.strokeOnly("rgba(255, 255, 255, 0.2").circle(circle);
-      form.stroke("#fff").line(ln);
-      form.fillOnly("rgba(255,255,255,0.8").points(ln, 0.5);
+      // trailing line shearing
+      if (trailingLines[index].length > maxTrailLength) {
+        trailingLines[index] = trailingLines[index].slice(trailingLines[index].length - maxTrailLength);
+      }
+      form
+        .strokeOnly("#fff", 2.5)
+        .line(trailingLines[index].map((pt) => pt.$multiply(scale).$add(space.center))); // reverse the 'normalization' from earlier
     }
 
-    // trailing line
-    if (trailingLine.length > maxTrailLength) {
-      trailingLine = trailingLine.slice(trailingLine.length - maxTrailLength);
-    }
-    form
-      .strokeOnly("#fff", 2.5)
-      .line(trailingLine.map((pt) => pt.$multiply(scale).$add(space.center))); // reverse the 'normalization' from earlier
     window.onfocus = () => {
       space.resume()
       correctForPause = true
