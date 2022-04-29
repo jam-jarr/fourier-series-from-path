@@ -108,9 +108,9 @@ function generateConstants() {
 
 function integrate(n) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
-  // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
+  // for a detailed explantion of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
 
-  // this is a bit of a hack, I'm gonna be honest, but I'm trying; Maybe I should move this processing to server-side? Maybe I should research other ways to do this?
+  // this is a bit of a hack, I'm gonna be honest, but I'm trying; Maybe I should move this processing to server-side? Maybe I should explore other ways to do this?
   const actualPathElements = pathElement.getElementsByTagName('path');
   let sum = math.complex(0, 0);
   for (let i = 0; i < actualPathElements.length; i++) {
