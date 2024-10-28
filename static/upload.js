@@ -6,7 +6,7 @@ const __dirname = window.location.href;
 
 let FILE;
 
-const DISPLAY_PATH = "/display";
+const DISPLAY_PATH = "display/index.html";
 
 const cardButtons = [...document.getElementsByClassName("card")];
 
