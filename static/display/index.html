@@ -15,11 +15,11 @@
     <body>
       <div id="board">
         <div class="slidecontainer">
-          <output id="nValue" defaultString="N: {value}"></output>
+          <output id="nValue" title="N: {value}"></output>
           <input type="range" min="1" max="100" class="slider" id="nSlider" />
           <output
             id="precisionValue"
-            defaultString="Precision: {value}"
+            title="Precision: {value}"
           ></output>
           <input
             type="range"
@@ -30,7 +30,7 @@
             id="precisionSlider"
           />
           <button type="button" id="resetButton">Recalculate</button>
-          <output id="scaleValue" defaultString="Scale: {value}"></output>
+          <output id="scaleValue" title="Scale: {value}"></output>
           <input
             type="range"
             min="1"
@@ -40,7 +40,7 @@
           />
           <output
             id="maxLengthValue"
-            defaultString="Max Trail Length: {value}"
+            title="Max Trail Length: {value}"
           ></output>
           <input
             type="range"

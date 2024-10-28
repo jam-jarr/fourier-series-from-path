@@ -1,13 +1,3 @@
-// decoding path from parameters
-// var search = location.search.substring(1);
-// let paramters = JSON.parse(
-//   '{"' +
-//     decodeURI(search)
-//       .replace(/"/g, '\\"')
-//       .replace(/&/g, '","')
-//       .replace(/=/g, '":"') +
-//     '"}'
-// );
 const path = sessionStorage.getItem('svg-data')
 
 var pathElement = document.createElementNS(
@@ -15,11 +5,15 @@ var pathElement = document.createElementNS(
   'svg'
 );
 pathElement.innerHTML = path
+const svg = pathElement.getElementsByTagName('svg')[0];
+const paths = [...svg.querySelectorAll('circle, ellipse, line, polyline, polygon, path, rect')]
+
+console.log('pathElement')
 console.log(pathElement)
-console.log('------')
-for (let i = 0; i < pathElement.children.length; i++) {
-  console.log(pathElement.children[i])
-}
+console.log('svg');
+console.log(svg);
+console.log('paths')
+console.log(paths)
 
 // globals
 let constantComponents = [];
@@ -75,7 +69,7 @@ maxTrailLengthSlider.oninput = () => {
 
 function setOutput(output, value) {
   output.innerHTML = output
-    .getAttribute("defaultString")
+    .getAttribute("title")
     .replace("{value}", value);
 }
 
@@ -90,20 +84,13 @@ function syncSlidersAndValues(slider, output, defaultValue) {
   setOutput(output, slider.value);
 }
 
+maxTrailLengthSlider.max = paths.reduce((pre, cur) => Math.max(pre.getTotalLength(), cur.getTotalLength()));
+
 // calculating the numbers for the visualization
 // NOTE: this can be a very demanding process, consider moving to server-side processing
 function generateConstants() {
   // calculate constants in range: [-N, N] for each path
   // TODO: refactor to map
-  //get 
-  const svg = pathElement.getElementsByTagName('svg')[0];
-  console.log('----------');
-  console.log(svg);
-  console.log('----------');
-  const paths = [...svg.querySelectorAll('circle, ellipse, line, polyline, polygon, path, rect')]
-  // const paths = [...pathElement.firstChild.children]
-  console.log('bbbbbb')
-  console.log(paths)
   constantComponents = [];
   paths.forEach((path) => {
     console.log(path);
@@ -117,12 +104,7 @@ function generateConstants() {
 
 function integrate(path, n) {
   // numerically integrate the function f(t) * e^(-n * 2 * pi * i * t) dt from 0 to 1
-  // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video on the Fourier Series: https://www.youtube.com/watch?v=r6sGWTCMz2k
-
-  // this is a bit of a hack, I'm gonna be honest, but I'm trying; Maybe I should move this processing to server-side? Maybe I should research other ways to do this?
-  // const actualPathElements = pathElement.firstChild.children;
-  // console.log('test');
-  // console.log(actualPathElements)
+  // for a further dissection of the math involved in this visualization, go watch 3Blue1Brown's video: https://www.youtube.com/watch?v=r6sGWTCMz2k
 
   let sum = math.complex(0, 0);
   const totalLength = path.getTotalLength();
@@ -231,7 +213,7 @@ space.add({
     }
 
     for (let index = 0; index < constantComponents.length; index++) {
-      
+
       const t = (fakeTime % 10000) / 10000; // t goes from 0 to 1 every 10000 milliseconds
       let lines = [];
       let vectors = constantComponents[index]
@@ -239,7 +221,9 @@ space.add({
         .map((vector) => math.multiply(vector, scale)); // scale everything by some amount
       let sortedArray = getSortedArray(vectors);
 
-      // remove first vector — its just a static vector that points to the middle anyways, so it makes more sense to just center the whole thing
+      // removes the first vector that points to the center of the image
+      // this can center any svg, but it can cause issues if you have multiple svgs
+      // that are MEANT to be offset (not sure how to fix this completely atm)
       sortedArray = sortedArray.slice(1);
 
       let currentPoint = new Pt(space.center);
